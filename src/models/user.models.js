@@ -74,26 +74,60 @@ userSchema.methods.isPasswordCorrect = async function (password) {
 };
 
 userSchema.methods.generateAccessToken = async function () {
+  const secret =
+    process.env.ACCESS_SECRET_KEY || process.env.ACCESS_TOKEN_SECRET;
+  if (!secret) {
+    throw new Error(
+      "ACCESS secret is not set in environment (set ACCESS_SECRET_KEY or ACCESS_TOKEN_SECRET)",
+    );
+  }
+
+  const expiresInRaw =
+    process.env.ACCESS_SECRET_EXPIRY ||
+    process.env.ACCESS_TOKEN_EXPIRY ||
+    "15m";
+  const expiresIn =
+    typeof expiresInRaw === "string"
+      ? expiresInRaw.trim()
+      : String(expiresInRaw);
+
   return jwt.sign(
     {
       _id: this._id,
       email: this.email,
       username: this.username,
     },
-    process.env.ACCESS_SECRET_KEY,
-    { expiresIn: process.env.ACCESS_SECRET_EXPIRY },
+    secret,
+    { expiresIn },
   );
 };
 
 userSchema.methods.generateRefreshToken = async function () {
+  const secret =
+    process.env.REFRESH_TOKEN_SECRET || process.env.REFRESH_SECRET_KEY;
+  if (!secret) {
+    throw new Error(
+      "REFRESH_TOKEN_SECRET is not set in environment (set REFRESH_TOKEN_SECRET)",
+    );
+  }
+
+  const expiresInRaw =
+    process.env.REFRESH_TOKEN_EXPIRY ||
+    process.env.REFRESH_SECRET_EXPIRY ||
+    "7d";
+  const expiresIn =
+    typeof expiresInRaw === "string"
+      ? expiresInRaw.trim()
+      : String(expiresInRaw);
+
   return jwt.sign(
     {
       _id: this._id,
       email: this.email,
       username: this.username,
     },
-    process.env.REFRESH_TOKEN_SECRET,
-    { expiresIn: process.env.REFRESH_TOKEN_EXPIRY },
+    secret,
+    { expiresIn },
   );
 };
 
